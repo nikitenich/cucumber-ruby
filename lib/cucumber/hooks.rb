@@ -9,18 +9,18 @@ module Cucumber
   # source for test steps
   module Hooks
     class << self
-      def before_hook(id, location, &block)
-        build_hook_step(id, location, block, BeforeHook, Core::Test::UnskippableAction)
+      def before_hook(id, location, name: nil, &block)
+        build_hook_step(id, location, block, BeforeHook, Core::Test::UnskippableAction, name: name)
       end
 
-      def after_hook(id, location, &block)
-        build_hook_step(id, location, block, AfterHook, Core::Test::UnskippableAction)
+      def after_hook(id, location, name: nil, &block)
+        build_hook_step(id, location, block, AfterHook, Core::Test::UnskippableAction, name: name)
       end
 
-      def after_step_hook(id, test_step, location, &block)
+      def after_step_hook(id, test_step, location, name: nil, &block)
         raise ArgumentError if test_step.hook?
 
-        build_hook_step(id, location, block, AfterStepHook, Core::Test::Action)
+        build_hook_step(id, location, block, AfterStepHook, Core::Test::Action, name: name)
       end
 
       def around_hook(&block)
@@ -29,22 +29,23 @@ module Cucumber
 
       private
 
-      def build_hook_step(id, location, block, hook_type, action_type)
+      def build_hook_step(id, location, block, hook_type, action_type, name: nil)
         action = action_type.new(location, &block)
-        hook = hook_type.new(action.location)
+        hook = hook_type.new(action.location, name: name)
         Core::Test::HookStep.new(id, hook.text, location, action)
       end
     end
 
     class AfterHook
-      attr_reader :location
+      attr_reader :location, :name
 
-      def initialize(location)
+      def initialize(location, name: nil)
         @location = location
+        @name = name
       end
 
       def text
-        'After hook'
+        "After hook#{name.nil? ? '' : ": #{name}"}"
       end
 
       def to_s
@@ -61,14 +62,15 @@ module Cucumber
     end
 
     class BeforeHook
-      attr_reader :location
+      attr_reader :location, :name
 
-      def initialize(location)
+      def initialize(location, name: nil)
         @location = location
+        @name = name
       end
 
       def text
-        'Before hook'
+        "Before hook#{name.nil? ? '' : ": #{name}"}"
       end
 
       def to_s
@@ -85,14 +87,15 @@ module Cucumber
     end
 
     class AfterStepHook
-      attr_reader :location
+      attr_reader :location, :name
 
-      def initialize(location)
+      def initialize(location, name: nil)
         @location = location
+        @name = name
       end
 
       def text
-        'AfterStep hook'
+        "AfterStep hook#{name.nil? ? '' : ": #{name}"}"
       end
 
       def to_s

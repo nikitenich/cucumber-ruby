@@ -21,7 +21,7 @@ module Cucumber
       def after_hooks
         @hooks.map do |hook|
           action = ->(result) { hook.invoke('After', @scenario.with_result(result)) }
-          hook_step = Hooks.after_hook(@id_generator.new_id, hook.location, &action)
+          hook_step = Hooks.after_hook(@id_generator.new_id, hook.location, name: hook.name, &action)
           @event_bus.hook_test_step_created(hook_step, hook)
           hook_step
         end
